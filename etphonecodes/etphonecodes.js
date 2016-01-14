@@ -231,7 +231,7 @@ var ETPhoneCodes = function (IDNode , startCountryCode, preferredCountries, writ
 	search_zone.onkeyup = function (e) {
 		
 		// Initialize values to check
-		var container = document.getElementById("etphonecodes-container_"+this.IDNode);
+		var container = document.getElementById("etphonecodes-container_"+IDNode);
 		var value = search_zone.value;
 		var allCountry = container.getElementsByClassName("country");
 		
