@@ -146,22 +146,15 @@ var ETPhoneCodes = function (IDNode , startCountryCode, preferredCountries, writ
     hiddenInput3.setAttribute("name", mainNode.getAttribute("name"));
     mainNode.setAttribute("name", IDNode+"_display-value");
     container.insertBefore(hiddenInput3, mainNode);
-    
-    //Supression des styles sur input
-    mainNode.className = "";
-    	
+	
 	var DisplayCountryCode = document.getElementById("etphonecodes-callcode_"+this.IDNode);
 	
 	//Take the last value of the input mainNode
 	var lastInputValue = "";
 	
-	// Initialize hidden input value with calling code default
-	if(mainNode.value != ''){
-		hiddenInput3.value = mainNode.value;
-	}else{
-		hiddenInput3.value = "+" + this.getDataCountryToCA2(startCountryCode)["calling-code"];
-	}
-    hiddenInput1.value = "+" + this.getDataCountryToCA2(startCountryCode)["calling-code"];
+	// Initialize hidden input value with calling code default    
+	//hiddenInput3.value = "00" + this.getDataCountryToCA2(startCountryCode)["calling-code"];
+    hiddenInput1.value = this.getDataCountryToCA2(startCountryCode)["calling-code"];
 	
     // Initialize placeholder of mainNode
 	this.changePlaceholderFromCA2(mainNode, startCountryCode);
@@ -171,33 +164,6 @@ var ETPhoneCodes = function (IDNode , startCountryCode, preferredCountries, writ
 		DisplayCountryCode.innerHTML = "+" + this.getDataCountryToCA2(startCountryCode)["calling-code"];
 	}
 	
-	// Check if mainNode has a value and a phone code, if yes complete input
-	var valueMainNodeDefaultHasCode = false;
-	var valueMainNodeDefaultCode = "";
-	if(mainNode.value != ""){
-		for (var i=0; i < mainNode.value.length; i++) {				
-			character = mainNode.value.substr(i,1);
-			if(i == 0 && character == "+"){
-				valueMainNodeDefaultHasCode = true;
-			}
-			if(i > 0 && valueMainNodeDefaultHasCode){
-				valueMainNodeDefaultCode += character;
-			}
-			if(ETPhoneCodesData['countryCodes'][valueMainNodeDefaultCode]){
-				valueMainNodeDefaultHasCode = false;
-			}
-		}
-	}
-	if(valueMainNodeDefaultCode != ""){ //Complete fields if has a code
-		hiddenInput1.value = "+" + valueMainNodeDefaultCode;
-		hiddenInput2.value = mainNode.value.replace("+"+valueMainNodeDefaultCode,"");
-		mainNode.value = mainNode.value.replace("+"+valueMainNodeDefaultCode,"");
-		DisplayCountryCode.innerHTML = "+" + valueMainNodeDefaultCode;
-		startCountryCode = ETPhoneCodesData['countryCodes'][valueMainNodeDefaultCode][0];
-		flagCurrent.className = 'flag '+startCountryCode;
-		newInputValue = ETPhoneCodes.prototype.InputFormating(mainNode, startCountryCode, mainNode.getAttribute("id"));
-	}
-		
 	
 	// Show or hide countries list when click
 	document.body.onclick = function(e){
@@ -265,7 +231,7 @@ var ETPhoneCodes = function (IDNode , startCountryCode, preferredCountries, writ
 	search_zone.onkeyup = function (e) {
 		
 		// Initialize values to check
-		var container = document.getElementById("etphonecodes-container_"+IDNode);
+		var container = document.getElementById("etphonecodes-container_"+this.IDNode);
 		var value = search_zone.value;
 		var allCountry = container.getElementsByClassName("country");
 		
@@ -515,9 +481,9 @@ ETPhoneCodes.prototype.InputFormating = function(mainNode, startCountryCode, IDN
 	}
 	
 	 // Set value in hidden input with no format
-	document.getElementById("etphonecodes-calling-code_"+IDNode).value = "+" + dataCountry['calling-code'];
-	document.getElementById("etphonecodes-phone-number_"+IDNode).value = mainNode.value.replace(/ /g, "").trim();
-	document.getElementById("etphonecodes-value_"+IDNode).value = "+" +  dataCountry['calling-code'] + mainNode.value.replace(/ /g, "").trim();
+	document.getElementById("etphonecodes-calling-code_"+IDNode).value = dataCountry['calling-code'];
+	document.getElementById("etphonecodes-phone-number_"+IDNode).value = mainNode.value.replace("(0)","0").replace(/ /g, "").trim();
+	document.getElementById("etphonecodes-value_"+IDNode).value = "00" +  dataCountry['calling-code'] + mainNode.value.replace("(0)","").replace(/ /g, "").trim();
 	
 	return value;
 };
