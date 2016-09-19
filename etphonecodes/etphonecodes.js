@@ -16,19 +16,19 @@ author: Editions Tissot (http://www.editions-tissot.fr/)
  * @param array preferredCountries Array of countries code to display at the beginning of the list
  * @param bool writeCallingCodeAtStart Boolean for write or not the calling code of startCountryCode
  */
-var ETPhoneCodes = function (IDNode , startCountryCode, preferredCountries, writeCallingCodeAtStart) {
+var ETPhoneCodes = function (IDNode, disablePlaceholder, startCountryCode, preferredCountries) {
 	
 	// Default datas (This datas can be overwritten when you call ETPhoneCodes function)
 	this.IDNode = "";
 	this.startCountryCodeDefault = "fr";
 	this.preferredCountriesDefault = ['fr','ch','be','mc','gy','gp','mq','re'];
-	this.writeCallingCodeAtStartDefault = true;
+	this.disablePlaceholder = false;
 	this.placeholderDefault = "e.g. +1 702 123 4567";
 	
 	// Load default data if undefined
 	startCountryCode = typeof startCountryCode !== 'undefined' ? startCountryCode : this.startCountryCodeDefault;
 	preferredCountries = typeof preferredCountries !== 'undefined' ? preferredCountries : this.preferredCountriesDefault;
-	writeCallingCodeAtStart = typeof writeCallingCodeAtStart !== 'undefined' ? writeCallingCodeAtStart : this.writeCallingCodeAtStartDefault;
+	disablePlaceholder = typeof disablePlaceholder !== 'undefined' ? disablePlaceholder : this.disablePlaceholder;
 	placeholder = typeof placeholder !== 'undefined' ? placeholder : this.placeholderDefault;
 	
 	// Check if IDNode is defined and not empty, if not writes error in console
@@ -152,17 +152,33 @@ var ETPhoneCodes = function (IDNode , startCountryCode, preferredCountries, writ
 	//Take the last value of the input mainNode
 	var lastInputValue = "";
 	
-	// Initialize hidden input value with calling code default    
-	//hiddenInput3.value = "00" + this.getDataCountryToCA2(startCountryCode)["calling-code"];
+	// Initialize hidden input value with calling code default
     hiddenInput1.value = this.getDataCountryToCA2(startCountryCode)["calling-code"];
+    
+    var initCountryCode = "";
+	if(mainNode.value.substr(0,2) == "00"){
+		for(var i=1;i<=5;i++){
+			if(ETPhoneCodesData['countryCodes'][mainNode.value.substr(2,i)]){
+				initCountryCode = mainNode.value.substr(2,i);
+				i = 99;
+			}
+		}
+	}
+	if(initCountryCode != ""){
+		mainNode.value = mainNode.value.substr(initCountryCode.length + 2, mainNode.value.length - (initCountryCode.length + 2));
+		hiddenInput1.value = initCountryCode;
+		hiddenInput2.value = "0"+mainNode.value;
+		startCountryCode = ETPhoneCodesData['countryCodes'][initCountryCode][0];
+		flagCurrent.className = 'flag '+startCountryCode;
+		ETPhoneCodes.prototype.InputFormating(mainNode, startCountryCode, IDNode);
+	}
+    
 	
     // Initialize placeholder of mainNode
-	this.changePlaceholderFromCA2(mainNode, startCountryCode);
+    this.changePlaceholderFromCA2(mainNode, startCountryCode, disablePlaceholder);
 	
-	// Write calling code if enable
-	if (writeCallingCodeAtStart) {
-		DisplayCountryCode.innerHTML = "+" + this.getDataCountryToCA2(startCountryCode)["calling-code"];
-	}
+	// Write calling code
+	DisplayCountryCode.innerHTML = "+" + this.getDataCountryToCA2(startCountryCode)["calling-code"];
 	
 	
 	// Show or hide countries list when click
@@ -177,13 +193,29 @@ var ETPhoneCodes = function (IDNode , startCountryCode, preferredCountries, writ
 		var dataID = ETPhoneCodes.prototype.getDataID(ETPhoneCodes.prototype.getEventTarget(e));
 		if (countriesList.style.display == "block" && target.getAttribute("id") != "etphonecodes-countries-list_"+dataID && target.className != "divider" && target.getAttribute("id") != "etphonecodes-suppr-search-zone_"+dataID && target.className != "etphonecodes-search-zone") {
 			if (target.parentNode == countriesList) {
-				ETPhoneCodes.prototype.manageClickCountry(mainNode, target, startCountryCode,  DisplayCountryCode, dataID);
+				ETPhoneCodes.prototype.manageClickCountry(mainNode, target, startCountryCode,  DisplayCountryCode, dataID, disablePlaceholder);
 				
 			}else{
-				ETPhoneCodes.prototype.manageClickCountry(mainNode, target.parentNode, startCountryCode,  DisplayCountryCode, dataID);
+				ETPhoneCodes.prototype.manageClickCountry(mainNode, target.parentNode, startCountryCode,  DisplayCountryCode, dataID, disablePlaceholder);
 			}
 			lastInputValue = ETPhoneCodes.prototype.InputFormating(mainNode, startCountryCode, dataID);
 		}
+	};
+	
+	mainNode.onfocus = function(e){
+		ETPhoneCodes.prototype.changePlaceholderFromCA2(mainNode, startCountryCode, true);
+	};
+	
+	mainNode.onblur = function(e){
+		var dataID = ETPhoneCodes.prototype.getDataID(ETPhoneCodes.prototype.getEventTarget(e));
+		var CA2ActiveContainer = document.getElementById("etphonecodes-container_"+dataID);
+		var CA2Active = CA2ActiveContainer.getElementsByClassName("country active")[0];
+		if (typeof CA2Active !== "undefined") {
+			CA2Active = CA2Active.getAttribute("data-country-code");
+		} else {
+			CA2Active = startCountryCode;
+		}
+		ETPhoneCodes.prototype.changePlaceholderFromCA2(mainNode, CA2Active, disablePlaceholder);
 	};
 	
 	//empeche la saisi de tout les caractère non autorisé
@@ -231,7 +263,7 @@ var ETPhoneCodes = function (IDNode , startCountryCode, preferredCountries, writ
 	search_zone.onkeyup = function (e) {
 		
 		// Initialize values to check
-		var container = document.getElementById("etphonecodes-container_"+this.IDNode);
+		var container = document.getElementById("etphonecodes-container_"+IDNode);
 		var value = search_zone.value;
 		var allCountry = container.getElementsByClassName("country");
 		
@@ -513,9 +545,9 @@ ETPhoneCodes.prototype.getDataCountryToCA2 = function (ca2) {
  * @param node node The node target
  * @param string ca2 The country code-alpha-2 to get country placeholder
  */
-ETPhoneCodes.prototype.changePlaceholderFromCA2 = function (node, ca2){
+ETPhoneCodes.prototype.changePlaceholderFromCA2 = function (node, ca2, disable){
 	var placeholdertxt = this.getDataCountryToCA2(ca2)["placeholder"];
-	if (typeof placeholdertxt == 'undefined' || placeholdertxt == "") {
+	if (typeof placeholdertxt == 'undefined' || placeholdertxt == "" || disable) {
 		placeholdertxt = "";
 	}
 	node.placeholder = placeholdertxt;
@@ -622,6 +654,10 @@ ETPhoneCodes.prototype.showOrHideCountriesList = function (e, IDNode) {
 			if (countriesList.style.display == "block" && target.className != 'etphonecodes-search-zone' && target.getAttribute("id") != 'etphonecodes-suppr-search-zone_'+IDNode ) {
 	        	countriesList.style.display = 'none';
 	    	} else {
+	    		var lists = document.getElementsByClassName('etphonecodes-countries-list');
+				for (var i=0; i < lists.length; i++) {
+					lists[i].style.display = 'none';
+				}
 	        	countriesList.style.display = 'block';
 	    	}
 	   }	
@@ -636,7 +672,7 @@ ETPhoneCodes.prototype.showOrHideCountriesList = function (e, IDNode) {
  * @param node target Click element (country selected)
  * @param string startCountryCode Default ca2
  */
-ETPhoneCodes.prototype.manageClickCountry = function (mainNode, target, startCountryCode, DisplayCountryCode, IDNode) {
+ETPhoneCodes.prototype.manageClickCountry = function (mainNode, target, startCountryCode, DisplayCountryCode, IDNode, disablePlaceholder) {
 	var callingCodeActive = ETPhoneCodes.prototype.getDataCountryToCA2(startCountryCode)["calling-code"];
 	var encapsule = document.getElementById("etphonecodes-container_"+IDNode);
 	
@@ -654,7 +690,7 @@ ETPhoneCodes.prototype.manageClickCountry = function (mainNode, target, startCou
     DisplayCountryCode.innerHTML = "+" + target.getAttribute("data-dial-code");
     
     // Change placeholder
-    ETPhoneCodes.prototype.changePlaceholderFromCA2(mainNode, target.getAttribute("data-country-code"));
+    ETPhoneCodes.prototype.changePlaceholderFromCA2(mainNode, target.getAttribute("data-country-code"), disablePlaceholder);
     
     // Change flag active
     document.getElementById("etphonecodes-selected-flag_"+IDNode).getElementsByClassName("flag")[0].className = 'flag '+ target.getAttribute("data-country-code");
