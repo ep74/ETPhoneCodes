@@ -348,7 +348,7 @@ countries: [ {
         "calling-code": "245"
     }, {
         name: "Guyana",
-        ca2: "gy",
+        ca2: "gf",
         "calling-code": "594",
         placeholder: "(0)594 28 39 45",
         format: "CCC.CC.CC.CC",
@@ -1070,7 +1070,7 @@ countries: [ {
         "591": [ "bo" ],
         "592": [ "gf" ],
         "593": [ "ec" ],
-        "594": [ "gy" ],
+        "594": [ "gf" ],
         "595": [ "py" ],
         "596": [ "mq" ],
         "597": [ "sr" ],
