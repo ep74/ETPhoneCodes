@@ -66,7 +66,8 @@ var ETPhoneCodes = function (IDNode, startCountryCode, preferredCountries, place
 		// Builds other div
 	    var flagDropDown = document.createElement('div');
 	    flagDropDown.setAttribute("id", "etphonecodes-flag-dropdown_"+this.IDNode);
-	    flagDropDown.className = 'f16 etphonecodes-flag-dropdown';
+	    var countryOnlyClass = countrySelectorOnly ? ' etphonecodes-countryonly':'';
+	    flagDropDown.className = 'f16 etphonecodes-flag-dropdown'+countryOnlyClass;
 	
 	    var selectedFlag = document.createElement('div');
 	    selectedFlag.setAttribute("id", "etphonecodes-selected-flag_"+this.IDNode);
